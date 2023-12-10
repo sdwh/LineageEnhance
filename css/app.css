@@ -103,3 +103,7 @@ a, .btn-link {
 .disable-dbl-tap-zoom {
     touch-action: manipulation !important;
 }
+
+body {
+    touch-action: manipulation !important;
+}
