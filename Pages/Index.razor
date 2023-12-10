@@ -1,0 +1,89 @@
+﻿@page "/"
+@using LineageEnhance.Models
+@inject AppRuntime appRuntime
+
+<PageTitle>Index</PageTitle>
+
+<h1 class="text-center fw-bolder text-danger">Lineage Enhance Emulator</h1>
+
+@* <SurveyPrompt Title="How is Blazor working for you?" /> *@
+
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <table class="table table-borderless table-striped">
+            <thead>
+                <tr>
+                    <td style="width: 55%">裝備名稱</td>
+                    <td>Def</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in appRuntime.Equipments)
+                {
+                    <tr>
+                        <td>
+                            <img src="/item/@(item.Image).png" class="img-fluid me-1" />
+                            @(item.IsEnhanceable ? $"+{item.Enhanced}" : "")
+                            @item.Name
+                        </td>
+                        <td>@(item.Defence - (item.IsEnhanceable ? item.Enhanced : 0))</td>
+                        <td>
+                            @if (item.IsEnhanceable)
+                            {
+                                <button class="btn btn-outline-info me-lg-3 btn-sm @((appRuntime.CoolDownState) ? "disabled" : "" )"
+                                @onclick="() => Enhance(item)">防卷</button>
+                                <button class="btn btn-outline-warning btn-sm @((appRuntime.CoolDownState) ? "disabled" : "" )"
+                                @onclick="() => Enhance(item, true)">
+                                    祝防<span class="d-none d-lg-inline">卷</span>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="offset-2 col-8 offset-lg-0 col-lg-4  text-center p-3">
+        <img src="q-elf-m.jpg" class="img-fluid"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 col-lg-4 d-flex align-items-center">
+        <label>LV：</label>
+        <input type="number" @bind="appRuntime.Level" class="form-control" />
+    </div>
+    <div class="col-12 col-lg-4 mt-3 mt-lg-0 d-flex align-items-center">
+        <span>AC：</span>
+        <input type="number" value="@sumDefence()" class="form-control" disabled/>
+    </div>
+</div>
+
+@code {
+    private async Task Enhance(Equipment equipment, bool blessed = false)
+    {
+        if (!equipment.IsEnhanceable || appRuntime.CoolDownState == true)
+        {
+            return;
+        }
+
+        appRuntime.CoolDownState = true;
+
+        var enhanceSystem = new EnhanceSystem(appRuntime);
+        await enhanceSystem.Enhance(equipment, blessed).ConfigureAwait(false);
+    }
+
+    public int sumDefence()
+    {
+        var baseDef = 10;
+        var defFromLevelDex = (int)Math.Floor((int)appRuntime.Level / 4.0);
+        foreach (var equip in appRuntime.Equipments)
+        {
+            baseDef = baseDef + equip.Defence - equip.Enhanced;
+        }
+        baseDef -= defFromLevelDex;
+        return baseDef;
+    }
+}

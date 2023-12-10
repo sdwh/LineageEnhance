@@ -1,0 +1,108 @@
+﻿@page "/battle"
+@using LineageEnhance.Models
+@inject AppRuntime appRuntime
+
+<PageTitle>Battle</PageTitle>
+
+<h1 class="text-center fw-bolder text-danger">Lineage Enhance Emulator</h1>
+
+@* <SurveyPrompt Title="How is Blazor working for you?" /> *@
+
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <table class="table table-borderless table-striped">
+            <thead>
+                <tr>
+                    <td>討伐對象</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="align-middle">蟹人</td>
+                    <td>
+                        <button class="btn btn-outline-success" @onclick="() => BattleStart()">練功</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="offset-2 col-8 offset-lg-0 col-lg-4  text-center p-3">
+        <img src="q-elf-m.jpg" class="img-fluid"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div>
+            等級：@appRuntime.Level
+            經驗值：<text>@appRuntime.Experience</text>
+        </div>
+    </div>
+    <div class="col-12">
+        @foreach (var item in myCollection)
+        {
+        <div>
+            @item.Key : @item.Value
+        </div>    
+        }
+    </div>
+</div>
+
+
+@code {
+    private Dictionary<string, int> myCollection = new Dictionary<string, int>();
+
+    public class Monster
+    {
+        public string Name { get; set; }
+        public int HP { get; set; }
+        public List<Drop> Drops { get; set; }
+        public int Exp { get; set; } = 0;
+    }
+
+    public class Drop
+    {
+        public string Name { get; set; }
+        public int Chance { get; set; } = 0;
+        public int Min { get; set; } = 1;
+        public int Max { get; set; } = 1;
+    }
+
+    private void BattleStart()
+    {
+        var monster = new Monster
+            {
+                Name = "蟹人",
+                HP = 100,
+                Exp = 325,
+                Drops = new List<Drop>
+                {
+                    new Drop { Name = "金幣", Chance = 1000000, Min = 61, Max = 110},
+                    new Drop { Name = "對盔甲施法的卷軸", Chance = 500},
+                    new Drop { Name = "瞬間移動卷軸", Chance = 100000},
+
+                }
+            };
+
+        var rand = new Random();
+        for (int i = 0; i < 100; i++)
+        {
+            foreach (var drop in monster.Drops)
+            {
+                if (rand.Next(0, 1000000) < drop.Chance)
+                {
+                    if (!myCollection.ContainsKey(drop.Name))
+                    {
+                        myCollection[drop.Name] = 1;
+                    }
+                    else
+                    {
+                        myCollection[drop.Name] += rand.Next(drop.Min, drop.Max + 1);                        
+                    }
+                }
+            }
+        }
+    }
+}
